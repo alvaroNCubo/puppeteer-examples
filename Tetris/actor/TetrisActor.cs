@@ -167,8 +167,11 @@ public sealed class TetrisActor : IGameActor
     public void SpawnNext()
     {
         var letter = QueryString("print well.NextPieceLetter() letter;", "letter");
-        // Check-then-command: spawn only when the well is awaiting a piece.
-        host.CheckThenCommand(AwaitingPieceCheck, $"well.Spawn('{letter}');");
+        // Check-then-command: spawn only when the well is awaiting a piece. The
+        // resolved letter rides as an @parameter (never spliced into the DSL text —
+        // parameters.md §5), so the command journals as a V2 Action the frame
+        // reaction [_:Well].Spawn($p) observes; $p captures this type.
+        host.CheckThenCommand(AwaitingPieceCheck, "well.Spawn(@type);", p => p["type", typeof(string)] = letter);
     }
 
     /// <summary>
@@ -198,8 +201,13 @@ public sealed class TetrisActor : IGameActor
     // Every move verb is check-guarded by the active-piece precondition, so the
     // command runs only while a piece is falling; otherwise it is a clean no-op
     // (state untouched) and the domain's hard guard is never tripped.
+    // The nullary move verbs carry no domain argument, so they pass a nominal
+    // @step parameter: its only job is to make the command journal as a V2 Action
+    // (Define+Invocation) rather than a literal Script, so the pure-domain frame
+    // reaction [_:Well].<verb>() observes it (engine Rule 1, Reaction.cs). The body
+    // never reads @step; the well mutation is unchanged.
     private void GuardedVerb(string command) =>
-        host.CheckThenCommand(ActivePieceCheck, command);
+        host.CheckThenCommand(ActivePieceCheck, command, p => p["step", typeof(int)] = 1);
 
     // ── Typed read for rendering + control flow ────────────────────────────
 

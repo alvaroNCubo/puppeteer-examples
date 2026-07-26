@@ -21,8 +21,15 @@ internal interface IGameHost : IDisposable
     /// <summary>Perform a command; returns the rendered output.</summary>
     string Command(string script);
 
-    /// <summary>Perform a check-then-command (the gentle guard); no-op if the check fails.</summary>
-    string CheckThenCommand(string check, string command);
+    /// <summary>
+    /// Perform a check-then-command (the gentle guard); no-op if the check fails.
+    /// <paramref name="configure"/> binds the command's <c>@parameters</c>, which
+    /// makes it journal as a V2 <em>Action</em> (Define+Invocation) — the form a
+    /// pure-domain frame reaction observes. A bare literal-Script command is skipped
+    /// by the engine's Rule 1 (Reaction.cs), so every mutating verb passes at least
+    /// one parameter (a real one for Spawn, a nominal one for the nullary verbs).
+    /// </summary>
+    string CheckThenCommand(string check, string command, Action<Parameters> configure);
 
     /// <summary>Run a query; returns the rendered output (sync on every host).</summary>
     string Query(string script);
@@ -47,8 +54,8 @@ internal sealed class PerformanceHost : IGameHost
     public string Command(string script) =>
         performance.Using(script).PerformCommand();
 
-    public string CheckThenCommand(string check, string command) =>
-        performance.Using(check, command).PerformCheckThenCommand();
+    public string CheckThenCommand(string check, string command, Action<Parameters> configure) =>
+        performance.Using(check, command).WithParameters(configure).PerformCheckThenCommand();
 
     public string Query(string script) =>
         performance.Using(script).PerformQuery();
@@ -83,9 +90,13 @@ internal sealed class StageHost : IGameHost
     public string Command(string script) =>
         stage.PerformCmd(script).GetAwaiter().GetResult();
 
-    public string CheckThenCommand(string check, string command) =>
-        stage.PerformCheckThenCommand(check, command, DateTime.Now, "0.0.0.0", "Anonymous")
+    public string CheckThenCommand(string check, string command, Action<Parameters> configure)
+    {
+        var parameters = new Parameters();
+        configure(parameters);
+        return stage.PerformCheckThenCommand(check, command, parameters, DateTime.Now, "0.0.0.0", "Anonymous")
             .GetAwaiter().GetResult();
+    }
 #pragma warning restore VSTHRD002
 
     public string Query(string script) =>
