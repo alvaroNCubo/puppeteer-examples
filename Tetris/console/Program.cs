@@ -26,7 +26,14 @@ var interactiveConsole = !Console.IsOutputRedirected;
 // is the domain's own (transient) randomness, captured into the journal.
 var moveRandom = new Random(12345);
 
-using var game = new TetrisActor("console", width, height);
+// --split drives the RE-CUT domain — a pile role and a piece role, two actors with
+// two journals — instead of the single Well. Everything below this line is unchanged
+// and unaware: both offer the same IGameActor surface and the same WellSnapshot, so
+// the host's keyboard handling, gravity and rendering do not know which cut they are
+// driving. This one line is the entire ripple of the re-decomposition on this host.
+using IGameActor game = args.Contains("--split")
+    ? SplitTetrisActor.InMemory("console", width, height)
+    : new TetrisActor("console", width, height);
 
 // Query-first contract, by construction: the host inspects the snapshot's
 // queries (IsGameOver / IsAwaitingPiece) before issuing any operation, so it

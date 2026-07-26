@@ -22,6 +22,14 @@
       de-signed there), point at the HelloWorld convention:
         ..\..\..\puppeteer\Puppeteer|Choreography\*.csproj
     -->
+    <!--
+      MINIMUM ENGINE: master at or after e65f681 (revert of the automatic
+      Script->Action promotion). SplitTetrisActor's landing choreography depends on an
+      `expose` alias surviving repetition: before that revert the engine rewrote a
+      repeated command's literals into generated parameters and consumed the alias with
+      them, so the piece role's utterance silently stopped firing after the tenth
+      landing. See Tetris/notes/redecomposition-pile-and-piece.md §8a.
+    -->
     <ProjectReference Include="..\..\..\Puppeteer Pacifico\Puppeteer\Puppeteer.csproj" />
     <ProjectReference Include="..\..\..\Puppeteer Pacifico\Choreography\Choreography.csproj" />
   </ItemGroup>

@@ -46,16 +46,22 @@ internal sealed class Pile : Shape
     public override ImmutableHashSet<Position> Cells => _cells;
 
     /// <summary>
-    /// Absorbs a landed <paramref name="piece"/> and settles the pile in one
-    /// operation: it merges the piece's cells, removes every row the piece
+    /// Absorbs a <paramref name="landed"/> figure and settles the pile in one
+    /// operation: it merges the figure's cells, removes every row they
     /// completed (bottom-up, so blocks above a vanished line fall to fill it),
     /// and returns the new pile — which by construction holds no complete row —
     /// together with the indices of the rows that collapsed. The caller (the
     /// well) is responsible for having checked the piece actually rests here.
+    /// <para>
+    /// It takes a <see cref="Shape"/> rather than a <see cref="Piece"/> so that a
+    /// caller which holds only the landed CELLS — a role that was told them
+    /// rather than watching the piece fall — can settle the pile the same way.
+    /// It must be a figure with a materialised extent; the boundary is not one.
+    /// </para>
     /// </summary>
-    public (Pile pile, IReadOnlyList<int> collapsedRows) Integrate(Piece piece)
+    public (Pile pile, IReadOnlyList<int> collapsedRows) Integrate(Shape landed)
     {
-        var merged = new Pile(Width, _cells.Union(piece.Cells));
+        var merged = new Pile(Width, _cells.Union(landed.Cells));
         var completed = merged.CompleteRows();
         if (completed.IsEmpty)
         {
