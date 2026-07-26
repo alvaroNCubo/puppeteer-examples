@@ -383,7 +383,10 @@ re-cut, the roles, and the hosts were all authored by the same party.
 
 Two of these blocked the work outright and had to be diagnosed before it could
 proceed. All three are about the engine, not about the re-cut, and all three were
-filed separately against `Puppeteer Pacifico`.
+filed separately against `Puppeteer Pacifico`. As of 2026-07-26 (a) is fixed and merged,
+(b) is fixed on an unmerged branch, and (c) is unreachable after (a)'s revert. What
+follows is what each one was and how it was pinned down, since that is the part a
+future reader needs.
 
 **(a) Literal lifting renamed an `expose` alias — FIXED upstream.** The engine
 promoted any command shape repeated ten times into a `define action` by rewriting its
@@ -405,15 +408,40 @@ that renders a name was another instance of the same bug. The lab's workaround
 removed, and the probe retired — its invariant is now covered upstream by
 `ScriptIsNotRewrittenTests`. The 9,265 landings of §3 re-run clean without it.
 
-**(b) A stale sparse index hides the journal's tail — OPEN.** `ForEachRawRecord`
-(`DiaryStorageFileSystem.cs:715`) skips a journal file whose indexed `LastEntryId <=
-afterEntryId`. The index is not persisted per append, so after a clean shutdown every
-entry past its high-water mark is unreadable — to introspection *and* to rehydration —
-while its bytes sit on disk. Measured on `e65f681`: the journal file keeps growing
-(5,031 → 5,285 → 6,467 bytes) while the readable count freezes at exactly **100
+**(b) A stale sparse index hides the journal's tail — FIXED on an unmerged branch.**
+`ForEachRawRecord` (`DiaryStorageFileSystem.cs:715`) skips a journal file whose indexed
+`LastEntryId <= afterEntryId`. The index is not persisted per append, so after a clean
+shutdown every entry past its high-water mark is unreadable — to introspection *and* to
+rehydration — while its bytes sit on disk. Measured on `e65f681`: the journal file keeps
+growing (5,031 → 5,285 → 6,467 bytes) while the readable count freezes at exactly **100
 entries**; a 129-act game loses 30 acts. With no index file present, everything reads
 back correctly, which is what identifies the persisted index as the culprit rather than
 the writer. This is why §5 uses a 40-act game: its record is complete.
+
+The root cause, from the session that fixed it: `index.bin` is persisted every
+`PERSIST_METADATA_INTERVAL` = **100 writes** while every record is durably flushed, and
+the loaded index was never validated against the journal files at open. Since readers
+treat `LastEntryId` as an upper bound on what a file *contains*, a lagging index
+discards the whole file. That is exactly the 100 measured here — the ceiling was the
+last periodic save, not a property of the data. Fixed by reconciling the index against
+the journal files in `Initialize` (sealed per-file header, or a record scan when the
+header was never sealed), widening ranges only, and persisting the healed index. Branch
+`claude/cool-euler-980e55`, commit `7dec2a1`, **not merged to master**; 4 new regression
+tests in `UnitTestPuppeteer/PersistedIndexStalenessTests.cs`, all 4 failing without it.
+
+Two consequences worse than the one this lab hit, which the same fix covers and which
+are worth recording because a reader of these numbers should know the defect was not
+merely cosmetic:
+
+- with a small `maxFileSize`, a rollover *after* the last index save leaves the whole
+  new file with no index entry — invisible even to a **full rehydration**, not just to
+  `ShowEntry`;
+- `SkipStore.FindFullySkippedFiles` derives a file's range from its index entry, so a
+  short range could make `Trim` **delete a file that still held live records**.
+
+Until that branch merges, the numbers above stand as measured. After it merges the
+sweep in §9 should show the readable count tracking the written count for every N —
+which is the confirmation, and re-running it is the check to make.
 
 **(c) Rehydration failed on an auto-promoted nullary action — moot after (a)'s
 revert.** Promotion also fired for shapes with no literals to lift, writing invocations
