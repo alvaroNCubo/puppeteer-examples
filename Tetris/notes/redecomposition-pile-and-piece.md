@@ -11,11 +11,13 @@ Paper 9 §8 reports re-decomposition as practice, not as measurement:
 This is that move, measured, on the cleanest available case: separating the Tetris
 `Well` into a **pile role** and a **piece role**.
 
-Everything below is reproducible; the commands are in the last section. All numbers
-were measured against Puppeteer Pacifico **`e65f681`** — which matters, because an
-earlier build's automatic Script→Action promotion broke this lab's choreography
-outright and has since been reverted upstream (§8a). **The lab requires an engine at
-or after `e65f681`.**
+Everything below is reproducible; the commands are in the last section. All numbers were
+measured against Puppeteer Pacifico master **`dd67047`**. That matters: this lab surfaced
+three engine defects, all three are now fixed on master (§8), and two of them distorted
+what a journal could be read back as. **The lab requires an engine at or after
+`dd67047`.** Note that the checkout the examples build against
+(`repos\Puppeteer Pacifico`, referenced by `actor/TetrisActor.csproj`) may sit well
+behind master; §9 says how to check.
 
 ---
 
@@ -143,14 +145,14 @@ it is recorded here because it is a real cost either way.
 
 ### What the record costs
 
-For the same 40 acts, measured on complete journals:
+For the same game — 129 acts, 29 landings, played through to game over:
 
 | | entries |
 |---|---|
-| single `Well` | 41 |
-| piece role | 70 |
-| pile role | 30 |
-| **two roles together** | **100 (2.44×)** |
+| single `Well` | 130 |
+| piece role | 219 |
+| pile role | 90 |
+| **two roles together** | **309 (2.38×)** |
 
 A landing costs **7 journal entries across two roles** where it cost **1** in one:
 the landing act, the `tell Landed`, its ack and the `Take` on the piece side; the
@@ -231,16 +233,18 @@ already does.
 
 ### What each role performed
 
-The translation, on a 40-act game whose record is complete:
+The translation, on a game played through to game over — every act issued is in the
+record, and every act in the record was re-performed:
 
 | acts in the original record | issued | recorded | translates into |
 |---|---|---|---|
 | `upgrade('seed') { well = Well(10,20); }` | — | 1 | opens both roles (not performed) |
-| `well.Spawn(letter)` | 10 | 10 | piece role: `piece.Spawn` |
-| `well.MoveLeft()` | 12 | 12 | piece role: `piece.MoveLeft` |
-| `well.MoveRight()` | 9 | 9 | piece role: `piece.MoveRight` |
-| `well.Drop()` | 9 | 9 | piece role: `piece.Drop` |
-| **total** | **40** | **40** | **40 re-performed** |
+| `well.Spawn(letter)` | 29 | 29 | piece role: `piece.Spawn` |
+| `well.MoveRight()` | 39 | 39 | piece role: `piece.MoveRight` |
+| `well.Drop()` | 29 | 29 | piece role: `piece.Drop` |
+| `well.MoveLeft()` | 26 | 26 | piece role: `piece.MoveLeft` |
+| `well.Rotate()` | 6 | 6 | piece role: `piece.Rotate` |
+| **total** | **129** | **129** | **129 re-performed** |
 
 **Every act of the original translates, and none was lost.** But look at which
 vocabulary they translate into: **all of them are the piece role's, and not one is the
@@ -253,49 +257,59 @@ transcribed from the original at all; it is **generated** during the re-decompos
 by the piece role performing its own verbs and telling. The record that carries across
 is the piece role's; the pile role's record is a consequence of replaying it.
 
-Resulting journals, read back in a fresh process (9 landings; the tenth piece is still
-falling):
+Resulting journals, read back in a fresh process (29 landings):
 
-| piece role — 70 entries | | pile role — 30 entries | |
+| piece role — 219 entries | | pile role — 90 entries | |
 |---|---|---|---|
-| `piece.MoveLeft` | 12 | `pile.Absorb` | 9 |
-| `piece.Spawn` | 10 | `tell Absorbed` | 9 |
-| `piece.MoveRight` | 9 | `tell ack` (from piece) | 9 |
-| `piece.Drop` | 9 | `upgrade` | 1 |
-| `piece.Take` | 9 | *(+2 declarations)* | |
-| `tell Landed` | 9 | | |
-| `tell ack` (from pile) | 9 | | |
+| `piece.MoveRight` | 39 | `pile.Absorb` | 29 |
+| `piece.Drop` | 29 | `tell Absorbed` | 29 |
+| `piece.Spawn` | 29 | `tell ack` (from piece) | 29 |
+| `piece.MoveLeft` | 26 | `upgrade` | 1 |
+| `piece.Rotate` | 6 | *(+2 declarations)* | |
+| `piece.Take` | 29 | | |
+| `tell Landed` | 29 | | |
+| `tell ack` (from pile) | 29 | | |
 | `upgrade` | 1 | | |
 | *(+2 declarations)* | | | |
 
-The first four rows are exactly the 40 acts the record held, re-performed. Everything
+The first five rows are exactly the 129 acts the record held, re-performed. Everything
 below them exists only because the domain is now two roles.
 
 ### Is the resulting state equivalent?
 
-Yes, exactly. Re-performing the recorded acts on the two roles reached the state the
-well was in after performing exactly those acts:
+Yes, exactly — including the ending. Re-performing the recorded acts on the two roles
+reached the state the well was in after performing exactly those acts:
 
 ```
-  MATCH  board: 0,3 0,4 1,4 1,5 14,0 14,1 14,2 14,3 14,6 15,1 15,4 15,5 ...
+  MATCH  board: 1,3 2,3 2,6 3,2 3,3 3,4 3,5 3,6 3,7 3,8 4,1 4,2 4,3 4,5 ...
   MATCH  lines cleared: 0
-  MATCH  game over: False
+  MATCH  game over: True
   MATCH  awaiting piece: False
-  MATCH  falling piece: Z
+  MATCH  falling piece: -
 ```
+
+`game over: True` is worth pointing at. The re-cut moved the authority for that fact
+from the object that owned everything to the pile role, which now has to *tell* the
+piece role. Replaying the record into the two roles reproduces it, and the two of them
+agree on it — so the transfer of authority survived the replay, not just the live play.
+
+And independently: the framework's **own** rehydration of that same journal reaches the
+same state (`MATCH rehydrated cleared`, `MATCH rehydrated over`). So the record is a
+record in the ordinary sense, and the re-decomposition read nothing special out of it.
 
 ### Was the original journal modified?
 
-**The record: no.** 41 acts before, 41 after, identical entry for entry — same ids,
+**The record: no.** 130 acts before, 130 after, identical entry for entry — same ids,
 same kinds, same sentences, same arguments. Nothing appended, nothing removed (file
 lengths unchanged).
 
 **The container: not byte-identical, once.** On the *first* open after the writing
-process exits, `meta.bin` and the journal file's header change content (same length).
-A second open changes nothing further. So the act of opening a journal normalises its
-header once; it does not alter the recorded acts. Reported precisely rather than
-rounded to "unchanged", because the fingerprints do differ and a reader of this note
-would find that out.
+process exits, `meta.bin`, `index.bin` and the journal file's header change content
+(same length). A second open changes nothing further. So the act of opening a journal
+normalises its metadata once; it does not alter the recorded acts. Reported precisely
+rather than rounded to "unchanged", because the fingerprints do differ and a reader of
+this note would find that out. (The `index.bin` write is the healing pass added by
+§8b's fix, doing exactly what it is supposed to do.)
 
 **Append-only, confirmed.** Both new journals have entry ids forming the contiguous
 run 1..N — nothing written out of order, nothing edited in place.
@@ -383,10 +397,11 @@ re-cut, the roles, and the hosts were all authored by the same party.
 
 Two of these blocked the work outright and had to be diagnosed before it could
 proceed. All three are about the engine, not about the re-cut, and all three were
-filed separately against `Puppeteer Pacifico`. As of 2026-07-26 (a) is fixed and merged,
-(b) is fixed on an unmerged branch, and (c) is unreachable after (a)'s revert. What
-follows is what each one was and how it was pinned down, since that is the part a
-future reader needs.
+filed separately against `Puppeteer Pacifico`. **All three are now fixed and merged to
+master** (`e65f681`, `036b972`, `dd67047`), and every number in this note was
+re-measured afterwards. What follows is what each one was and how it was pinned down,
+since that is the part a future reader needs — and because two of them are cautionary
+in a way that outlives the fix.
 
 **(a) Literal lifting renamed an `expose` alias — FIXED upstream.** The engine
 promoted any command shape repeated ten times into a `define action` by rewriting its
@@ -408,7 +423,7 @@ that renders a name was another instance of the same bug. The lab's workaround
 removed, and the probe retired — its invariant is now covered upstream by
 `ScriptIsNotRewrittenTests`. The 9,265 landings of §3 re-run clean without it.
 
-**(b) A stale sparse index hides the journal's tail — FIXED on an unmerged branch.**
+**(b) A stale sparse index hid the journal's tail — FIXED, merged `036b972`.**
 `ForEachRawRecord` (`DiaryStorageFileSystem.cs:715`) skips a journal file whose indexed
 `LastEntryId <= afterEntryId`. The index is not persisted per append, so after a clean
 shutdown every entry past its high-water mark is unreadable — to introspection *and* to
@@ -425,13 +440,26 @@ treat `LastEntryId` as an upper bound on what a file *contains*, a lagging index
 discards the whole file. That is exactly the 100 measured here — the ceiling was the
 last periodic save, not a property of the data. Fixed by reconciling the index against
 the journal files in `Initialize` (sealed per-file header, or a record scan when the
-header was never sealed), widening ranges only, and persisting the healed index. Branch
-`claude/cool-euler-980e55`, commit `7dec2a1`, **not merged to master**; 4 new regression
-tests in `UnitTestPuppeteer/PersistedIndexStalenessTests.cs`, all 4 failing without it.
+header was never sealed), widening ranges only, and persisting the healed index. Commit
+`7dec2a1`, merged as `036b972`; 4 regression tests in
+`UnitTestPuppeteer/PersistedIndexStalenessTests.cs`, all 4 failing without it.
+
+Re-measured on `dd67047`, the sweep that found the ceiling is now flat — readable equals
+written at every length, including the 129-act game that had been losing 30 acts:
+
+| acts played | journal bytes | entries readable | expected |
+|---|---|---|---|
+| 40 | 2,072 | 41 | 41 |
+| 95 | 4,789 | 96 | 96 |
+| 100 | 5,031 | 101 | 101 |
+| 105 | 5,285 | 106 | 106 |
+| 129 | 6,467 | 130 | 130 |
+
+That is why §5 now measures the re-decomposition on the **whole game through to game
+over** rather than on the 40-act prefix an earlier draft was confined to.
 
 Two consequences worse than the one this lab hit, which the same fix covers and which
-are worth recording because a reader of these numbers should know the defect was not
-merely cosmetic:
+are worth recording because a reader should know the defect was not merely cosmetic:
 
 - with a small `maxFileSize`, a rollover *after* the last index save leaves the whole
   new file with no index entry — invisible even to a **full rehydration**, not just to
@@ -439,28 +467,44 @@ merely cosmetic:
 - `SkipStore.FindFullySkippedFiles` derives a file's range from its index entry, so a
   short range could make `Trim` **delete a file that still held live records**.
 
-Until that branch merges, the numbers above stand as measured. After it merges the
-sweep in §9 should show the readable count tracking the written count for every N —
-which is the confirmation, and re-running it is the check to make.
+**(c) A zero-argument invocation was unreplayable — FIXED, merged `dd67047`.** An
+Action declaring no parameter journals its invocations with an EMPTY arguments blob, and
+the read path treated "empty" as "missing value": replay threw `LanguageException:
+Arguments cannot be null or empty` per entry, logged it, and continued — so the actor
+came back **started**, answering queries, with every act after the promotion silently
+missing. The write path produced a record the read path refused. Reached here because
+automatic promotion turned repeated nullary verbs (`well.Drop()`) into exactly such an
+Action; that path is gone with (a), but the defect was in the reader, so it was fixed
+there (commit `f67d212`): `LoadArguments` accepts an empty blob when no user parameter is
+declared, and `AddKnownActionFromDefine` now always builds a `Parameters` instance —
+without which relaxing `LoadArguments` alone would have converted the exception into an
+NRE. 5 regression cases in
+`UnitTestPuppeteer/NullaryActionInvocationReplayBugReproTests.cs`.
 
-**(c) Rehydration failed on an auto-promoted nullary action — moot after (a)'s
-revert.** Promotion also fired for shapes with no literals to lift, writing invocations
-with an empty argument list; replay then threw `LanguageException: Arguments cannot be
-null or empty` per entry, logged it, and continued — so the actor recovered a silently
-wrong state. With automatic promotion gone there is no longer a path that produces such
-an entry, so this is unreachable on `e65f681`. It is recorded because journals written
-by earlier builds still contain those rows, and because the failure mode it exposed —
-a rehydration parse error that is logged and swallowed, handing back a started actor
-with knowingly incomplete state — is worth fixing on its own terms.
-
-Note what (b) and (c) meant together on the pre-revert build: **the well's own journal
-could not be correctly replayed by the framework that wrote it.** The
-re-decomposition's read coped (joining defines to invocations, and reporting gaps
-rather than stopping at the first one); the framework's own rehydration of the same
-record did not. That comparison is what turned two silent misreadings into two filed
-defects, and it is the reason the re-decomposition is measured on a short game.
+Note what (b) and (c) meant together before they were fixed: **the well's own journal
+could not be correctly replayed by the framework that wrote it.** The re-decomposition's
+read coped — joining defines to invocations, and reporting gaps rather than stopping at
+the first one — while the framework's own rehydration of the same record did not. That
+comparison is what turned two silent misreadings into two filed defects. The general
+lesson survives both fixes and is the one to keep: **a rehydration that logs a parse
+failure and continues hands back a started actor with knowingly incomplete state**, so a
+replay is only evidence if you recorded the expected state at play time and asserted
+against it. This harness does (`played-state.txt`, `played-boards.txt`), which is the
+only reason the discrepancy was visible at all.
 
 ## 9. Reproducing
+
+**First, check the engine.** `actor/TetrisActor.csproj` references
+`..\..\..\Puppeteer Pacifico\...` — the main checkout, which may be parked on some
+other branch well behind master. All three fixes of §8 are required:
+
+```bash
+git -C "/c/Users/alvar/source/repos/Puppeteer Pacifico" merge-base --is-ancestor dd67047 HEAD && echo ok
+```
+
+If that prints nothing, the numbers below will not reproduce (§8b in particular). Point
+the reference at a worktree on master rather than moving the shared checkout, which may
+carry someone's uncommitted work.
 
 From `Tetris/`:
 
@@ -479,7 +523,7 @@ Experiment 1 — the invariant and the agreement of the two cuts. Also `flat` an
 `random`.
 
 ```bash
-dotnet run --project redecomp/TetrisRedecomp.csproj -- play /tmp/rd/original 3 40
+dotnet run --project redecomp/TetrisRedecomp.csproj -- play /tmp/rd/original 1 400
 ```
 
 Experiment 3a — play a game on the single `Well` and leave its journal behind. A
@@ -506,5 +550,6 @@ dotnet run --project console/TetrisConsole.csproj -- --auto --split
 The staging ripple — the same interactive console, one line changed, driving two roles.
 Drop `--split` for the single `Well`.
 
-Requires an engine at or after `e65f681` (§8a). On an earlier build the landing
-choreography silently stops working after the tenth landing.
+Requires an engine at or after `dd67047`. On a build before `e65f681` the landing
+choreography silently stops working after the tenth landing (§8a); before `036b972` the
+record reads back short past 100 entries (§8b).

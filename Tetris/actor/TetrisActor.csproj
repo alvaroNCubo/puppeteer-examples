@@ -23,12 +23,18 @@
         ..\..\..\puppeteer\Puppeteer|Choreography\*.csproj
     -->
     <!--
-      MINIMUM ENGINE: master at or after e65f681 (revert of the automatic
-      Script->Action promotion). SplitTetrisActor's landing choreography depends on an
-      `expose` alias surviving repetition: before that revert the engine rewrote a
-      repeated command's literals into generated parameters and consumed the alias with
-      them, so the piece role's utterance silently stopped firing after the tenth
-      landing. See Tetris/notes/redecomposition-pile-and-piece.md §8a.
+      MINIMUM ENGINE: master at or after dd67047. Three fixes this example's
+      redecomp lab surfaced and depends on:
+        e65f681  automatic Script-to-Action promotion removed. It rewrote a repeated
+                 command's literals into generated parameters and consumed the `expose`
+                 ALIAS with them, so SplitTetrisActor's landing choreography silently
+                 stopped firing after the tenth landing.
+        036b972  a stale persisted sparse index no longer hides a journal's tail; before
+                 it, a record read back short past ~100 entries.
+        dd67047  a zero-argument invocation is replayable; before it, rehydrating a
+                 promoted nullary Action logged and skipped those acts.
+      To check, run `git merge-base` with the is-ancestor flag for dd67047 against that
+      checkout's HEAD. See Tetris/notes/redecomposition-pile-and-piece.md §8 and §9.
     -->
     <ProjectReference Include="..\..\..\Puppeteer Pacifico\Puppeteer\Puppeteer.csproj" />
     <ProjectReference Include="..\..\..\Puppeteer Pacifico\Choreography\Choreography.csproj" />

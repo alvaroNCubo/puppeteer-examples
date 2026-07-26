@@ -101,16 +101,14 @@ internal static class SplitGame
             var contiguous = acts.Select((a, i) => a.EntryId == i + 1).All(x => x);
             Console.WriteLine($"  entry ids contiguous 1..{acts.Count}: {contiguous}");
 
-            // Engine defect (b): a stale persisted sparse index hides every entry past
-            // its high-water mark, which on this backend lands at 100. Beyond that the
-            // tallies above are the readable record, not the written one — so they are
-            // not evidence of anything. Keep a run short enough to stay under it (the
-            // re-decomposition experiment does).
-            if (acts.Count >= 100)
+            if (JournalActs.Gaps.Count > 0)
             {
-                Console.WriteLine(
-                    "  WARNING: at/over the 100-entry read ceiling (engine defect (b)) — these counts "
-                    + "are the readable record, not the written one. Re-run with fewer ops.");
+                // A gap means the record read is not the record written. It used to be
+                // routine past 100 entries — a stale persisted sparse index hid the
+                // tail (engine defect (b), fixed in 036b972) — so it is worth saying out
+                // loud rather than letting short counts pass as evidence.
+                Console.WriteLine($"  WARNING: gaps at entry ids {string.Join(", ", JournalActs.Gaps)} — "
+                    + "these counts are the readable record, not the written one.");
             }
 
             if (dump)
