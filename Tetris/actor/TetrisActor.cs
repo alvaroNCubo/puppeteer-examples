@@ -181,7 +181,7 @@ public sealed class TetrisActor : IGameActor
     /// <see cref="SpawnNext"/> is this verb with the domain's own choice.
     /// </summary>
     public void Spawn(string letter) =>
-        host.CheckThenCommand(AwaitingPieceCheck, $"well.Spawn('{letter}');");
+        host.CheckThenCommand(AwaitingPieceCheck, "well.Spawn(@type);", p => p["type", typeof(string)] = letter);
 
     /// <summary>Slides the active piece one column left (a blocked slide is a no-op).</summary>
     public void MoveLeft() => GuardedVerb("well.MoveLeft();");

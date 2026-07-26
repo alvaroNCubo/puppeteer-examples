@@ -36,8 +36,10 @@
       To check, run `git merge-base` with the is-ancestor flag for dd67047 against that
       checkout's HEAD. See Tetris/notes/redecomposition-pile-and-piece.md §8 and §9.
     -->
-    <ProjectReference Include="..\..\..\Puppeteer Pacifico\Puppeteer\Puppeteer.csproj" />
-    <ProjectReference Include="..\..\..\Puppeteer Pacifico\Choreography\Choreography.csproj" />
+    <!-- p9/labg-rerun: pointed at a dedicated worktree pinned to master dd67047,
+         so the re-run does not depend on the shared checkout's branch. -->
+    <ProjectReference Include="..\..\..\eng\Puppeteer\Puppeteer.csproj" />
+    <ProjectReference Include="..\..\..\eng\Choreography\Choreography.csproj" />
   </ItemGroup>
 
 </Project>
