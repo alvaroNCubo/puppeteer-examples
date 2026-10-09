@@ -34,6 +34,11 @@ Paper 1 (*Anti-porosity*) is the conceptual entry point.
   abstraction: everything occupied is a *figure of cells*. No Puppeteer
   reference yet; a later phase wraps the aggregate root as an actor for the
   distributed-observation labs.
+- [`Sketch/`](Sketch/) — a drawing canvas whose picture depends only on the
+  strokes it holds, and the demonstration *Forgetting on Purpose*: the
+  drawn-then-erased strokes of a session are forgotten from the journal,
+  previewed on a Shadow, proved harmless by the elision-impact diff, and
+  removed by Distill. The picture stays byte-equal and the journal shrinks.
 
 ## How to run
 

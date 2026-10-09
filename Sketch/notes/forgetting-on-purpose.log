@@ -1,0 +1,310 @@
+Forgetting on Purpose — captured run logs (run.log of each lab run)
+
+##############################################################################
+# public-scale1
+##############################################################################
+Forgetting on Purpose — lab run
+   date (UTC)                         2026-09-30 20:51
+   seed / survivors / hesitations     42 / 500 / 1500 (scale 1)
+   engine commit / build              2673d57 / Release
+
+== 1. The session
+   acts (draws + erases)              3500 (2000 + 1500)
+   journal head                       3504
+   records (script/define/invocation) 3504 (0/3/3501)
+   bytes: segments / all files        196,158 / 196,236
+   strokes on the canvas              500
+   longest draw→erase distance        13 entries
+   picture SHA-256                    f6587c64a5113d24fc36625f3afc8d16dd6e56d52181349e0b67c585675db8a4
+   session time                       4.88 s
+
+== 2. The rule
+   | name: "ForgetErasedStrokes"
+   | hydration: "Shared"
+   | action: "Metadata.Elide"
+   | matchCount: 1500
+   | seeks:
+   |   - name: "Drawn"
+   |     isFinal: false
+   |     onMatch:
+   |       - text: "[_:Canvas].Draw($id, _, _, _, _, _)"
+   |     entered: 2000
+   |     matched: 2000
+   |     detected: 0
+   |     confirmed: 0
+   |   - name: "Erased"
+   |     isFinal: false
+   |     onMatch:
+   |       - text: "[_:Canvas].Erase($id)"
+   |     entered: 189621
+   |     matched: 1500
+   |     detected: 0
+   |     confirmed: 0
+
+== 3. The preview
+   entries the rule would elide       3000
+   pairs matched                      1500
+   primary head / records / bytes     3504 / 3504 / 196,236 (unchanged)
+   preview time                       1.42 s
+
+== 4. The proof
+   the rule's pairs                   SAFE — 0 observations changed (0.08 s)
+   all but the Draw of stroke 1114    UNSAFE — changed: picture, stroke count (0.08 s)
+
+== 5. The commit
+   pairs elided on the primary        1500 (49.86 s)
+   Distill                            0.05 s
+   records full → logical → physical  3504 → 3504 → 504
+   elision marks full → logical       0 → 3000
+   segment bytes full → logical → physical 196,158 → 196,158 → 34,250
+   all bytes full → logical → physical 196,236 → 256,574 → 34,666
+   picture after reopen               byte-equal
+   stroke count after reopen          500 (equal)
+   head before / after reopen         3504 / 3504
+   next command's entry id            3505 (new, ids ascending: True)
+   cold start, full (median of 5)     41.4 ms (min 40.0, max 47.2)
+   cold start, logical (median of 5)  37.0 ms (min 35.8, max 38.3)
+   cold start, physical (median of 5) 14.2 ms (min 14.1, max 14.5)
+
+== 6. What was given up
+   mid-session entry                  1695
+   strokes then, before Distill       241, of them hesitations: 959, 960, 961, 962, 964, 965, 966
+   forgetting, asked of that moment   UNSAFE — changed: picture, stroke count
+   strokes then, as the diff predicted 234
+   strokes then, after Distill        234 (the predicted picture, byte-equal: True)
+   records up to that entry: before / after Distill 1695 / 238
+
+   total run time                     60.55 s
+   wrote report.html, numbers.json, run.log and picture.svg, unsafe-without.svg, unsafe-with.svg, past-then.svg, past-after-distill.svg
+
+##############################################################################
+# private-scale1
+##############################################################################
+Forgetting on Purpose — lab run
+   date (UTC)                         2026-09-30 20:52
+   seed / survivors / hesitations     42 / 500 / 1500 (scale 1)
+   engine commit / build              b083a5a / Release
+
+== 1. The session
+   acts (draws + erases)              3500 (2000 + 1500)
+   journal head                       3504
+   records (script/define/invocation) 3504 (0/3/3501)
+   bytes: segments / all files        196,158 / 196,236
+   strokes on the canvas              500
+   longest draw→erase distance        13 entries
+   picture SHA-256                    f6587c64a5113d24fc36625f3afc8d16dd6e56d52181349e0b67c585675db8a4
+   session time                       4.99 s
+
+== 2. The rule
+   | name: "ForgetErasedStrokes"
+   | hydration: "Shared"
+   | action: "Metadata.Elide"
+   | matchCount: 1500
+   | seeks:
+   |   - name: "Drawn"
+   |     isFinal: false
+   |     onMatch:
+   |       - text: "[_:Canvas].Draw($id, _, _, _, _, _)"
+   |     entered: 2000
+   |     matched: 2000
+   |     detected: 0
+   |     confirmed: 0
+   |   - name: "Erased"
+   |     isFinal: false
+   |     onMatch:
+   |       - text: "[_:Canvas].Erase($id)"
+   |     entered: 189621
+   |     matched: 1500
+   |     detected: 0
+   |     confirmed: 0
+
+== 3. The preview
+   entries the rule would elide       3000
+   pairs matched                      1500
+   primary head / records / bytes     3504 / 3504 / 196,236 (unchanged)
+   preview time                       1.33 s
+
+== 4. The proof
+   the rule's pairs                   SAFE — 0 observations changed (0.09 s)
+   all but the Draw of stroke 1114    UNSAFE — changed: picture, stroke count (0.08 s)
+
+== 5. The commit
+   pairs elided on the primary        1500 (49.22 s)
+   Distill                            0.05 s
+   records full → logical → physical  3504 → 3504 → 504
+   elision marks full → logical       0 → 3000
+   segment bytes full → logical → physical 196,158 → 196,158 → 34,250
+   all bytes full → logical → physical 196,236 → 256,573 → 34,665
+   picture after reopen               byte-equal
+   stroke count after reopen          500 (equal)
+   head before / after reopen         3504 / 3504
+   next command's entry id            3505 (new, ids ascending: True)
+   cold start, full (median of 5)     41.1 ms (min 39.1, max 47.0)
+   cold start, logical (median of 5)  37.6 ms (min 36.4, max 38.6)
+   cold start, physical (median of 5) 14.1 ms (min 13.9, max 14.3)
+
+== 6. What was given up
+   mid-session entry                  1695
+   strokes then, before Distill       241, of them hesitations: 959, 960, 961, 962, 964, 965, 966
+   forgetting, asked of that moment   UNSAFE — changed: picture, stroke count
+   strokes then, as the diff predicted 234
+   strokes then, after Distill        234 (the predicted picture, byte-equal: True)
+   records up to that entry: before / after Distill 1695 / 238
+
+   total run time                     60.16 s
+   wrote report.html, numbers.json, run.log and picture.svg, unsafe-without.svg, unsafe-with.svg, past-then.svg, past-after-distill.svg
+
+##############################################################################
+# public-scale10
+##############################################################################
+Forgetting on Purpose — lab run
+   date (UTC)                         2026-09-30 20:53
+   seed / survivors / hesitations     42 / 5000 / 15000 (scale 10)
+   engine commit / build              2673d57 / Release
+
+== 1. The session
+   acts (draws + erases)              35000 (20000 + 15000)
+   journal head                       35004
+   records (script/define/invocation) 35004 (0/3/35001)
+   bytes: segments / all files        1,992,086 / 1,992,164
+   strokes on the canvas              5000
+   longest draw→erase distance        13 entries
+   picture SHA-256                    7f701067f459aab6e4e1eeec649ffac7d3ccb45d24d40c33465036e3c7804a7e
+   session time                       56.14 s
+
+== 2. The rule
+   | name: "ForgetErasedStrokes"
+   | hydration: "Shared"
+   | action: "Metadata.Elide"
+   | matchCount: 15000
+   | seeks:
+   |   - name: "Drawn"
+   |     isFinal: false
+   |     onMatch:
+   |       - text: "[_:Canvas].Draw($id, _, _, _, _, _)"
+   |     entered: 20000
+   |     matched: 20000
+   |     detected: 0
+   |     confirmed: 0
+   |   - name: "Erased"
+   |     isFinal: false
+   |     onMatch:
+   |       - text: "[_:Canvas].Erase($id)"
+   |     entered: 2173642
+   |     matched: 15000
+   |     detected: 0
+   |     confirmed: 0
+
+== 3. The preview
+   entries the rule would elide       30000
+   pairs matched                      15000
+   primary head / records / bytes     35004 / 35004 / 1,992,164 (unchanged)
+   preview time                       10.5 s
+
+== 4. The proof
+   the rule's pairs                   SAFE — 0 observations changed (0.79 s)
+   all but the Draw of stroke 14984   UNSAFE — changed: picture, stroke count (0.84 s)
+
+== 5. The commit
+   pairs elided on the primary        15000 (595.03 s)
+   Distill                            0.25 s
+   records full → logical → physical  35004 → 35004 → 5004
+   elision marks full → logical       0 → 30000
+   segment bytes full → logical → physical 1,992,086 → 1,992,086 → 343,214
+   all bytes full → logical → physical 1,992,164 → 2,592,501 → 343,629
+   picture after reopen               byte-equal
+   stroke count after reopen          5000 (equal)
+   head before / after reopen         35004 / 35004
+   next command's entry id            35005 (new, ids ascending: True)
+   cold start, full (median of 5)     380.8 ms (min 372.8, max 384.4)
+   cold start, logical (median of 5)  222.8 ms (min 221.4, max 223.6)
+   cold start, physical (median of 5) 57.7 ms (min 56.4, max 58.4)
+
+== 6. What was given up
+   mid-session entry                  16249
+   strokes then, before Distill       2315, of them hesitations: 9271, 9272, 9273, 9275, 9276, 9277, 9278, 9279, 9280
+   forgetting, asked of that moment   UNSAFE — changed: picture, stroke count
+   strokes then, as the diff predicted 2306
+   strokes then, after Distill        2306 (the predicted picture, byte-equal: True)
+   records up to that entry: before / after Distill 16249 / 2310
+
+   total run time                     695.8 s
+   wrote report.html, numbers.json, run.log and picture.svg, unsafe-without.svg, unsafe-with.svg, past-then.svg, past-after-distill.svg
+
+##############################################################################
+# private-scale10
+##############################################################################
+Forgetting on Purpose — lab run
+   date (UTC)                         2026-09-30 21:05
+   seed / survivors / hesitations     42 / 5000 / 15000 (scale 10)
+   engine commit / build              b083a5a / Release
+
+== 1. The session
+   acts (draws + erases)              35000 (20000 + 15000)
+   journal head                       35004
+   records (script/define/invocation) 35004 (0/3/35001)
+   bytes: segments / all files        1,992,086 / 1,992,164
+   strokes on the canvas              5000
+   longest draw→erase distance        13 entries
+   picture SHA-256                    7f701067f459aab6e4e1eeec649ffac7d3ccb45d24d40c33465036e3c7804a7e
+   session time                       48.68 s
+
+== 2. The rule
+   | name: "ForgetErasedStrokes"
+   | hydration: "Shared"
+   | action: "Metadata.Elide"
+   | matchCount: 15000
+   | seeks:
+   |   - name: "Drawn"
+   |     isFinal: false
+   |     onMatch:
+   |       - text: "[_:Canvas].Draw($id, _, _, _, _, _)"
+   |     entered: 20000
+   |     matched: 20000
+   |     detected: 0
+   |     confirmed: 0
+   |   - name: "Erased"
+   |     isFinal: false
+   |     onMatch:
+   |       - text: "[_:Canvas].Erase($id)"
+   |     entered: 2173642
+   |     matched: 15000
+   |     detected: 0
+   |     confirmed: 0
+
+== 3. The preview
+   entries the rule would elide       30000
+   pairs matched                      15000
+   primary head / records / bytes     35004 / 35004 / 1,992,164 (unchanged)
+   preview time                       10.97 s
+
+== 4. The proof
+   the rule's pairs                   SAFE — 0 observations changed (0.83 s)
+   all but the Draw of stroke 14984   UNSAFE — changed: picture, stroke count (0.82 s)
+
+== 5. The commit
+   pairs elided on the primary        15000 (581.33 s)
+   Distill                            0.26 s
+   records full → logical → physical  35004 → 35004 → 5004
+   elision marks full → logical       0 → 30000
+   segment bytes full → logical → physical 1,992,086 → 1,992,086 → 343,214
+   all bytes full → logical → physical 1,992,164 → 2,592,502 → 343,630
+   picture after reopen               byte-equal
+   stroke count after reopen          5000 (equal)
+   head before / after reopen         35004 / 35004
+   next command's entry id            35005 (new, ids ascending: True)
+   cold start, full (median of 5)     444.2 ms (min 434.2, max 448.0)
+   cold start, logical (median of 5)  239.3 ms (min 237.6, max 242.8)
+   cold start, physical (median of 5) 63.6 ms (min 61.9, max 66.6)
+
+== 6. What was given up
+   mid-session entry                  16249
+   strokes then, before Distill       2315, of them hesitations: 9271, 9272, 9273, 9275, 9276, 9277, 9278, 9279, 9280
+   forgetting, asked of that moment   UNSAFE — changed: picture, stroke count
+   strokes then, as the diff predicted 2306
+   strokes then, after Distill        2306 (the predicted picture, byte-equal: True)
+   records up to that entry: before / after Distill 16249 / 2310
+
+   total run time                     676.02 s
+   wrote report.html, numbers.json, run.log and picture.svg, unsafe-without.svg, unsafe-with.svg, past-then.svg, past-after-distill.svg
+

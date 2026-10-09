@@ -1,0 +1,12 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <!-- Renders the printed picture projection. It references neither the domain nor the
+       engine: it consumes only the rendered text a query or the elision diff returns. -->
+  <PropertyGroup>
+    <TargetFramework>net9.0</TargetFramework>
+    <Nullable>enable</Nullable>
+    <RootNamespace>Sketch.Rendering</RootNamespace>
+    <AssemblyName>SketchView</AssemblyName>
+  </PropertyGroup>
+
+</Project>

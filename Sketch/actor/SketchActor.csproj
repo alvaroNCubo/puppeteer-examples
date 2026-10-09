@@ -1,0 +1,17 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net9.0</TargetFramework>
+    <Nullable>enable</Nullable>
+    <RootNamespace>Sketch.Acting</RootNamespace>
+    <AssemblyName>SketchActor</AssemblyName>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\domain\SketchDomain.csproj" />
+    <!-- The engine, from the checkout PuppeteerRoot names (see ../Directory.Build.props). -->
+    <ProjectReference Include="$(PuppeteerRoot)\Puppeteer\Puppeteer.csproj" />
+    <ProjectReference Include="$(PuppeteerRoot)\Choreography\Choreography.csproj" />
+  </ItemGroup>
+
+</Project>

@@ -1,0 +1,13 @@
+<Project>
+
+  <!--
+    Where the Puppeteer engine checkout lives. Defaults to a sibling `puppeteer`
+    folder next to this repo (the layout the root README describes). Override it
+    for another checkout with `-p:PuppeteerRoot=<path>` or a `PuppeteerRoot`
+    environment variable.
+  -->
+  <PropertyGroup>
+    <PuppeteerRoot Condition="'$(PuppeteerRoot)' == ''">$(MSBuildThisFileDirectory)..\..\puppeteer</PuppeteerRoot>
+  </PropertyGroup>
+
+</Project>
